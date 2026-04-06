@@ -16,7 +16,12 @@ def get_transcript(video_id):
     return script
 
 def extract_videoId(url):
-    return url.split("v=")[1]
+    if("youtu.be/" in url):
+        split1 = url.split("youtu.be/")[1]
+        split2 = split1.split("?")[0]
+        return split2
+    else:
+        return url.split("v=")[1]   
 
 def summarize(transcript):
     response = client.chat.completions.create(
@@ -29,16 +34,25 @@ def summarize(transcript):
 
 
 def chunk_transcript(transcript, chunk_Size=1000):
-    for i in range(len(transcript),chunk_Size):
-        yield transcript[i:i+chunk_Size]
+    words = transcript.split()
+    for i in range(0,len(words),chunk_Size):
+        yield " ".join(words[i:i+chunk_Size])
+    pass
 
-st.title("Yotube summarizer")
-url = st.text_input("Enter ur yt url here")
-if st.button("Summarize"):
+st.title("Youtube Summarizer")
+st.write("Please make sure the video is not more than 20 mins long as it might not give any results: ")
+url = st.text_input("Paste your youtube link here: ")
+if st.button("Summazrise"):
     try:
-      extract = extract_videoId(url)
-      transcript = get_transcript(extract)
-      summary = summarize(transcript)
-      st.write(summary)
-    except Exception as e:
-        st.error("Couldn't fetch transcript.Try an English video! ")
+        extract = extract_videoId(url)
+        transcript = get_transcript(extract)
+        summaries = []
+        chunks = chunk_transcript(transcript)
+        for chunk in chunks:
+            chunk_summary = summarize(chunk)
+            summaries.append(chunk_summary)
+
+        final = summarize(" ".join(summaries))
+        st.write(final)
+    except Exception as e :
+        st.write("Oh no! Only english is supported for now! Summaries for other Languages is under work...")
