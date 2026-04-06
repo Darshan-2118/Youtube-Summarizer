@@ -15,6 +15,9 @@ def get_transcript(video_id):
     script=" ".join(text)
     return script
 
+def extract_videoId(url):
+    return url.split("v=")[1]
+
 def summarize(transcript):
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
@@ -23,11 +26,19 @@ def summarize(transcript):
         ]
     )
     return response.choices[0].message.content
+
+
+def chunk_transcript(transcript, chunk_Size=1000):
+    for i in range(len(transcript),chunk_Size):
+        yield transcript[i:i+chunk_Size]
+
 st.title("Yotube summarizer")
 url = st.text_input("Enter ur yt url here")
-
 if st.button("Summarize"):
-    transcript = get_transcript(url)
-    pass
-print(summarize(transcript))
-print("Hello world")
+    try:
+      extract = extract_videoId(url)
+      transcript = get_transcript(extract)
+      summary = summarize(transcript)
+      st.write(summary)
+    except Exception as e:
+        st.error("Couldn't fetch transcript.Try an English video! ")
