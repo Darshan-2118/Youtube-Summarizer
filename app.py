@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import streamlit as st
 from youtube_transcript_api import YouTubeTranscriptApi
 
+#to load the contents from the env file
 load_dotenv()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
